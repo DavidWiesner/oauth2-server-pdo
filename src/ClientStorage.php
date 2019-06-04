@@ -24,7 +24,7 @@ class ClientStorage extends Storage implements ClientInterface
 	 * @param string $redirectUri The client's redirect URI (default = "null")
 	 * @param string $grantType The grant type used (default = "null")
 	 *
-	 * @return \League\OAuth2\Server\Entity\ClientEntity | null
+	 * @return ClientEntity | null
 	 */
 	public function get($clientId, $clientSecret = null, $redirectUri = null, $grantType = null)
 	{
@@ -58,9 +58,9 @@ class ClientStorage extends Storage implements ClientInterface
 	/**
 	 * Get the client associated with a session
 	 *
-	 * @param \League\OAuth2\Server\Entity\SessionEntity $session The session
+	 * @param SessionEntity $session The session
 	 *
-	 * @return \League\OAuth2\Server\Entity\ClientEntity | null
+	 * @return ClientEntity | null
 	 */
 	public function getBySession(SessionEntity $session)
 	{

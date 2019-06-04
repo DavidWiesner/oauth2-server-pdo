@@ -12,6 +12,7 @@ namespace DBoho\OAuth2\Server\Storage\PDO;
 use League\OAuth2\Server\Entity\AuthCodeEntity;
 use League\OAuth2\Server\Entity\ScopeEntity;
 use League\OAuth2\Server\Storage\AuthCodeInterface;
+use PDOException;
 
 class AuthCodeStorage extends Storage implements AuthCodeInterface
 {
@@ -21,8 +22,8 @@ class AuthCodeStorage extends Storage implements AuthCodeInterface
 	 *
 	 * @param string $code
 	 *
-	 * @return \League\OAuth2\Server\Entity\AuthCodeEntity | null
-	 * @throws \PDOException
+	 * @return AuthCodeEntity | null
+	 * @throws PDOException
 	 */
 	public function get($code)
 	{
@@ -45,23 +46,22 @@ class AuthCodeStorage extends Storage implements AuthCodeInterface
 	 * @param integer $sessionId Session identifier
 	 * @param string $redirectUri Client redirect uri
 	 *
-	 * @return int lastInsertId
-	 * @throws \PDOException
+	 * @return void
+	 * @throws PDOException
 	 */
 	public function create($token, $expireTime, $sessionId, $redirectUri)
 	{
 		$this->run('INSERT INTO oauth_auth_codes (auth_code, expire_time, session_id, client_redirect_uri)
 							VALUES (?,?,?,?)', [$token, $expireTime, $sessionId, $redirectUri]);
-		return $this->pdo->lastInsertId();
 	}
 
 	/**
 	 * Get the scopes for an access token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AuthCodeEntity $token The auth code
+	 * @param AuthCodeEntity $token The auth code
 	 *
-	 * @return \League\OAuth2\Server\Entity\ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
-	 * @throws \PDOException
+	 * @return ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
+	 * @throws PDOException
 	 */
 	public function getScopes(AuthCodeEntity $token)
 	{
@@ -83,11 +83,11 @@ class AuthCodeStorage extends Storage implements AuthCodeInterface
 	/**
 	 * Associate a scope with an acess token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AuthCodeEntity $token The auth code
-	 * @param \League\OAuth2\Server\Entity\ScopeEntity $scope The scope
+	 * @param AuthCodeEntity $token The auth code
+	 * @param ScopeEntity $scope The scope
 	 *
 	 * @return void
-	 * @throws \PDOException
+	 * @throws PDOException
 	 */
 	public function associateScope(AuthCodeEntity $token, ScopeEntity $scope)
 	{
@@ -98,7 +98,7 @@ class AuthCodeStorage extends Storage implements AuthCodeInterface
 	/**
 	 * Delete an access token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AuthCodeEntity $token The access token to delete
+	 * @param AuthCodeEntity $token The access token to delete
 	 *
 	 * @return void
 	 */

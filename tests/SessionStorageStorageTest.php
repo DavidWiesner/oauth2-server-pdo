@@ -1,6 +1,7 @@
 <?php
 use DBoho\OAuth2\Server\Storage\PDO\ClientStorage;
 use DBoho\OAuth2\Server\Storage\PDO\SessionStorage;
+use League\Event\Emitter;
 use League\OAuth2\Server\AbstractServer;
 use League\OAuth2\Server\Entity\AccessTokenEntity;
 use League\OAuth2\Server\Entity\AuthCodeEntity;
@@ -10,6 +11,7 @@ use League\OAuth2\Server\Entity\SessionEntity;
 
 class PDOMock extends PDO
 {
+	/** @noinspection PhpMissingParentConstructorInspection */
 
 	/**
 	 * PDOMock constructor.
@@ -52,10 +54,10 @@ class SessionStorageTest extends PDOTest
 
 	public function testGetByAccessToken()
 	{
-		$this->db->exec('INSERT INTO oauth_sessions
-						VALUES (19, "user", "3", "testclient", "/");
+		$this->db->exec("INSERT INTO oauth_sessions
+						VALUES (19, 'user', '3', 'testclient', '/');
 						INSERT INTO oauth_access_tokens
-						VALUES ("1234", 19,  DATETIME("NOW", "+1 DAY"));');
+						VALUES ('1234', 19,  DATETIME('NOW', '+1 DAY'));");
 		$accessToken = new AccessTokenEntity($this->server);
 		$accessToken->setId('1234');
 		$client = new ClientEntity($this->server);
@@ -81,8 +83,8 @@ class SessionStorageTest extends PDOTest
 
 	public function testGetByAuthCode()
 	{
-		$this->db->exec('INSERT INTO oauth_sessions	VALUES (19, "user", "3", "testclient", "/");
-						INSERT INTO oauth_auth_codes VALUES ("1234", 19,  DATETIME("NOW", "+1 DAY"), "/");');
+		$this->db->exec("INSERT INTO oauth_sessions	VALUES (19, 'user', '3', 'testclient', '/');
+						INSERT INTO oauth_auth_codes VALUES ('1234', 19,  DATETIME('NOW', '+1 DAY'), '/');");
 		/** @var AuthCodeEntity $authCode */
 		$authCode = (new AuthCodeEntity($this->server))->setId("1234");
 		$client = new ClientEntity($this->server);
@@ -98,12 +100,12 @@ class SessionStorageTest extends PDOTest
 
 	public function testCreate()
 	{
-		$id = $this->session->create('user', 'myOwner', 'myClient', '/myRedirect');
+		$id = $this->session->create('user', '-123', 'myClient', '/myRedirect');
 
 		$this->assertNotNull($id);
 		$stmt = $this->db->prepare('SELECT * FROM oauth_sessions WHERE id = ' . $id);
 		$stmt->execute();
-		$this->assertSame([$id, 'user', 'myOwner', 'myClient', '/myRedirect'], $stmt->fetch(PDO::FETCH_NUM));
+		$this->assertSame([$id, 'user', '-123', 'myClient', '/myRedirect'], $stmt->fetch(PDO::FETCH_NUM));
 	}
 
 	public function testCreateNoRedirect()
@@ -151,9 +153,9 @@ class SessionStorageTest extends PDOTest
 
 	public function testGetScopes()
 	{
-		$this->db->exec('INSERT INTO oauth_sessions	VALUES (29, "user", "3", "testclient", "/");
-						INSERT INTO oauth_scopes VALUES ("user.list", "list users"), ("user.add", "add user");
-						INSERT INTO oauth_session_scopes VALUES (10, 29, "user.list");');
+		$this->db->exec("INSERT INTO oauth_sessions	VALUES (29, 'user', '3', 'testclient', '/');
+						INSERT INTO oauth_scopes VALUES ('user.list', 'list users'), ('user.add', 'add user');
+						INSERT INTO oauth_session_scopes VALUES (10, 29, 'user.list');");
 		$session = (new SessionEntity($this->server))->setId(29);
 
 		$scopes = $this->session->getScopes($session);
@@ -192,7 +194,7 @@ class SessionStorageTest extends PDOTest
 
 		$this->session = new SessionStorage($this->db);
 		$this->server = $this->getMock(AbstractServer::class);
-		$this->server->method('getEventEmitter')->willReturn(new \League\Event\Emitter());
+		$this->server->method('getEventEmitter')->willReturn(new Emitter());
 		$this->clientStorage = $this->getMockBuilder(ClientStorage::class)->disableOriginalConstructor()->getMock();
 		$this->server->method('getClientStorage')->willReturn($this->clientStorage);
 

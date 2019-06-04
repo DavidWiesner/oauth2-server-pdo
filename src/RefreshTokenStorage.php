@@ -48,7 +48,11 @@ class RefreshTokenStorage extends Storage implements RefreshTokenInterface
 	{
 		$this->run('INSERT INTO oauth_refresh_tokens (refresh_token, expire_time, access_token)
 							VALUES (?,?,?)', [$token, $expireTime, $accessToken]);
-		return $this->pdo->lastInsertId();
+		$token = new RefreshTokenEntity($this->server);
+		$token->setId($token);
+		$token->setExpireTime($expireTime);
+		$token->setAccessTokenId($accessToken);
+		return $token;
 	}
 
 	/**

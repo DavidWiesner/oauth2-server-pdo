@@ -19,7 +19,6 @@ class PDOTest extends PHPUnit_Framework_TestCase
 	{
 		parent::setUpBeforeClass();
 		self::$sql = file_get_contents(__DIR__ . '/../sql/oauth2.sql');
-//		self::$sql = self::cleanUpSQL(self::$sql);
 	}
 
 	protected function setUp()

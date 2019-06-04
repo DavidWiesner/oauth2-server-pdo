@@ -12,6 +12,7 @@ namespace DBoho\OAuth2\Server\Storage\PDO;
 use League\OAuth2\Server\Entity\AccessTokenEntity;
 use League\OAuth2\Server\Entity\ScopeEntity;
 use League\OAuth2\Server\Storage\AccessTokenInterface;
+use PDOException;
 
 class AccessTokenStorage extends Storage implements AccessTokenInterface
 {
@@ -21,7 +22,7 @@ class AccessTokenStorage extends Storage implements AccessTokenInterface
 	 *
 	 * @param string $token The access token
 	 *
-	 * @return \League\OAuth2\Server\Entity\AccessTokenEntity | null
+	 * @return AccessTokenEntity | null
 	 */
 	public function get($token)
 	{
@@ -38,10 +39,10 @@ class AccessTokenStorage extends Storage implements AccessTokenInterface
 	/**
 	 * Get the scopes for an access token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AccessTokenEntity $token The access token
+	 * @param AccessTokenEntity $token The access token
 	 *
-	 * @return \League\OAuth2\Server\Entity\ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
-	 * @throws \PDOException
+	 * @return ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
+	 * @throws PDOException
 	 */
 	public function getScopes(AccessTokenEntity $token)
 	{
@@ -68,20 +69,19 @@ class AccessTokenStorage extends Storage implements AccessTokenInterface
 	 * @param integer $expireTime The expire time expressed as a unix timestamp
 	 * @param string|integer $sessionId The session ID
 	 *
-	 * @return int lastInsertId
+	 * @return void
 	 */
 	public function create($token, $expireTime, $sessionId)
 	{
 		$this->run('INSERT INTO oauth_access_tokens (access_token, expire_time, session_id)
 							VALUES (?,?,?)', [$token, $expireTime, $sessionId]);
-		return $this->pdo->lastInsertId();
 	}
 
 	/**
 	 * Associate a scope with an acess token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AccessTokenEntity $token The access token
-	 * @param \League\OAuth2\Server\Entity\ScopeEntity $scope The scope
+	 * @param AccessTokenEntity $token The access token
+	 * @param ScopeEntity $scope The scope
 	 *
 	 * @return void
 	 */
@@ -94,7 +94,7 @@ class AccessTokenStorage extends Storage implements AccessTokenInterface
 	/**
 	 * Delete an access token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AccessTokenEntity $token The access token to delete
+	 * @param AccessTokenEntity $token The access token to delete
 	 *
 	 * @return void
 	 */

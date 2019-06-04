@@ -35,7 +35,7 @@ class AccessTokenStorageTest extends PDOTest
 	public function testGet()
 	{
 		$time = time() + 60 * 60;
-		$this->db->exec('INSERT INTO oauth_access_tokens VALUES ("10authCode", 1, ' . $time . ');');
+		$this->db->exec("INSERT INTO oauth_access_tokens VALUES ('10authCode', 1, " . $time . ');');
 		$scope = new ScopeEntity($this->server);
 
 		$token = $this->accessToken->get('10authCode');
@@ -51,7 +51,7 @@ class AccessTokenStorageTest extends PDOTest
 	{
 		$this->accessToken->create('20NewToken', 1024, 1);
 
-		$stmt = $this->db->prepare('SELECT * FROM oauth_access_tokens WHERE access_token = "20NewToken"');
+		$stmt = $this->db->prepare("SELECT * FROM oauth_access_tokens WHERE access_token = '20NewToken'");
 		$stmt->execute();
 		$this->assertSame([
 				'access_token' => '20NewToken',
@@ -90,10 +90,10 @@ class AccessTokenStorageTest extends PDOTest
 
 	public function testGetScopes()
 	{
-		$this->db->exec('INSERT INTO oauth_access_tokens
-						VALUES ("10authCode", 1, DATETIME("NOW", "+1 DAY"));
-						INSERT INTO oauth_scopes VALUES ("user.list", "list users"), ("user.add", "add user");
-						INSERT INTO oauth_access_token_scopes VALUES (10, "10authCode", "user.list");');
+		$this->db->exec("INSERT INTO oauth_access_tokens
+						VALUES ('10authCode', 1, DATETIME('NOW', '+1 DAY'));
+						INSERT INTO oauth_scopes VALUES ('user.list', 'list users'), ('user.add', 'add user');
+						INSERT INTO oauth_access_token_scopes VALUES (10, '10authCode', 'user.list');");
 		$token = (new AccessTokenEntity($this->server))->setId('10authCode');
 
 		$scopes = $this->accessToken->getScopes($token);
@@ -120,20 +120,20 @@ class AccessTokenStorageTest extends PDOTest
 
 		$this->accessToken->associateScope($token, $scope);
 
-		$stmt = $this->db->prepare('SELECT access_token, scope FROM oauth_access_token_scopes WHERE access_token = "10authCode"');
+		$stmt = $this->db->prepare("SELECT access_token, scope FROM oauth_access_token_scopes WHERE access_token = '10authCode'");
 		$stmt->execute();
 		$this->assertSame(['10authCode', 'user.list'], $stmt->fetch(PDO::FETCH_NUM));
 	}
 
 	public function testDelete()
 	{
-		$this->db->exec('INSERT INTO oauth_access_tokens
-					VALUES ("10authCode", 1, DATETIME("NOW", "+1 DAY"));');
+		$this->db->exec("INSERT INTO oauth_access_tokens
+					VALUES ('10authCode', 1, DATETIME('NOW', '+1 DAY'));");
 		$token = (new AccessTokenEntity($this->server))->setId('10authCode');
 
 		$this->accessToken->delete($token);
 
-		$stmt = $this->db->prepare('SELECT * FROM oauth_access_tokens WHERE access_token = "10authCode"');
+		$stmt = $this->db->prepare("SELECT * FROM oauth_access_tokens WHERE access_token = '10authCode'");
 		$stmt->execute();
 		$this->assertSame([], $stmt->fetchAll(PDO::FETCH_ASSOC));
 	}
