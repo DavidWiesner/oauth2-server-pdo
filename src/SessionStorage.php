@@ -20,16 +20,16 @@ class SessionStorage extends Storage implements SessionInterface
 	/**
 	 * Get a session from an access token
 	 *
-	 * @param \League\OAuth2\Server\Entity\AccessTokenEntity $accessToken The access token
+	 * @param AccessTokenEntity $accessToken The access token
 	 *
-	 * @return \League\OAuth2\Server\Entity\SessionEntity | null
+	 * @return SessionEntity | null
 	 */
 	public function getByAccessToken(AccessTokenEntity $accessToken)
 	{
 		$result = $this->run('SELECT id, owner_type, owner_id, client_id, client_redirect_uri
 									FROM oauth_sessions as oauth_sessions JOIN oauth_access_tokens as tokens ON(tokens.session_id = id)
 									WHERE tokens.access_token = ?',
-				[$accessToken->getId()]);
+			[$accessToken->getId()]);
 		if (count($result) === 1) {
 			$session = new SessionEntity($this->getServer());
 			$session->setId($result[0]['id']);
@@ -42,16 +42,16 @@ class SessionStorage extends Storage implements SessionInterface
 	/**
 	 * Get a session from an auth code
 	 *
-	 * @param \League\OAuth2\Server\Entity\AuthCodeEntity $authCode The auth code
+	 * @param AuthCodeEntity $authCode The auth code
 	 *
-	 * @return \League\OAuth2\Server\Entity\SessionEntity | null
+	 * @return SessionEntity | null
 	 */
 	public function getByAuthCode(AuthCodeEntity $authCode)
 	{
 		$result = $this->run('SELECT id, owner_type, owner_id
 									FROM oauth_sessions as s JOIN oauth_auth_codes as codes ON(codes.session_id = id)
 									WHERE codes.auth_code = ?',
-				[$authCode->getId()]);
+			[$authCode->getId()]);
 		if (count($result) === 1) {
 			$session = new SessionEntity($this->getServer());
 			$session->setId($result[0]['id']);
@@ -73,17 +73,24 @@ class SessionStorage extends Storage implements SessionInterface
 	 */
 	public function create($ownerType, $ownerId, $clientId, $clientRedirectUri = null)
 	{
-		$this->run('INSERT INTO oauth_sessions (owner_type, owner_id, client_id, client_redirect_uri)
+		if ($this->supportsReturning) {
+			$stmt = $this->run(/** @lang PostgreSQL */
+				'INSERT INTO oauth_sessions (owner_type, owner_id, client_id, client_redirect_uri)
+							VALUES (?,?,?,?) RETURNING id', [$ownerType, $ownerId, $clientId, $clientRedirectUri], true, true);
+			return $stmt->fetchColumn();
+		} else {
+			$this->run('INSERT INTO oauth_sessions (owner_type, owner_id, client_id, client_redirect_uri)
 							VALUES (?,?,?,?)', [$ownerType, $ownerId, $clientId, $clientRedirectUri]);
-		return $this->pdo->lastInsertId();
+			return $this->pdo->lastInsertId();
+		}
 	}
 
 	/**
 	 * Get a session's scopes
 	 *
-	 * @param  \League\OAuth2\Server\Entity\SessionEntity
+	 * @param SessionEntity $session
 	 *
-	 * @return \League\OAuth2\Server\Entity\ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
+	 * @return ScopeEntity[] Array of \League\OAuth2\Server\Entity\ScopeEntity
 	 */
 	public function getScopes(SessionEntity $session)
 	{
@@ -94,8 +101,8 @@ class SessionStorage extends Storage implements SessionInterface
 		$scopes = [];
 		foreach ($results as $scope) {
 			$scopes[] = (new ScopeEntity($this->server))->hydrate([
-					'id' => $scope['id'],
-					'description' => $scope['description'],
+				'id' => $scope['id'],
+				'description' => $scope['description'],
 			]);
 		}
 		return $scopes;
@@ -104,14 +111,14 @@ class SessionStorage extends Storage implements SessionInterface
 	/**
 	 * Associate a scope with a session
 	 *
-	 * @param \League\OAuth2\Server\Entity\SessionEntity $session The session
-	 * @param \League\OAuth2\Server\Entity\ScopeEntity $scope The scope
+	 * @param SessionEntity $session The session
+	 * @param ScopeEntity $scope The scope
 	 *
 	 * @return void
 	 */
 	public function associateScope(SessionEntity $session, ScopeEntity $scope)
 	{
 		$this->run('INSERT INTO oauth_session_scopes (session_id, scope) VALUES (?,?)',
-				[$session->getId(), $scope->getId()]);
+			[$session->getId(), $scope->getId()]);
 	}
 }
