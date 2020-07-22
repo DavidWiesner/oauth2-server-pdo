@@ -20,9 +20,6 @@ class AccessTokenStorageTest extends PDOTest
 	 * @var AbstractServer
 	 */
 	protected $server;
-	/**
-	 * @var PHPUnit_Framework_MockObject_MockObject
-	 */
 	protected $accessStorage;
 
 	public function testGetFailed()
@@ -40,7 +37,8 @@ class AccessTokenStorageTest extends PDOTest
 
 		$token = $this->accessToken->get('10authCode');
 
-		$this->accessStorage->expects($this->once())->method('getScopes')->with($token)->willReturn([''=>$scope]);
+        /** @noinspection PhpParamsInspection */
+        $this->accessStorage->expects($this->once())->method('getScopes')->with($token)->willReturn([''=>$scope]);
 		$this->assertNotNull($token);
 		$this->assertEquals('10authCode', $token->getId());
 		$this->assertEquals($time, $token->getExpireTime());
@@ -60,31 +58,25 @@ class AccessTokenStorageTest extends PDOTest
 		], $stmt->fetch(PDO::FETCH_ASSOC));
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*session_id'
-	 */
-	public function testCreateFailedNoSession()
+    public function testCreateFailedNoSession()
 	{
-		$this->accessToken->create('20NewToken', 1024, null);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*session_id'");
+        $this->accessToken->create('20NewToken', 1024, null);
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*expire_time'
-	 */
-	public function testCreateFailedNoExpired()
+    public function testCreateFailedNoExpired()
 	{
-		$this->accessToken->create('20NewToken', null, 1);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*expire_time'");
+        $this->accessToken->create('20NewToken', null, 1);
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*access_token'
-	 */
-	public function testCreateFailedNoCode()
+    public function testCreateFailedNoCode()
 	{
-		$this->accessToken->create(null, 1024, 1);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*access_token'");
+        $this->accessToken->create(null, 1024, 1);
 	}
 
 
@@ -98,7 +90,7 @@ class AccessTokenStorageTest extends PDOTest
 
 		$scopes = $this->accessToken->getScopes($token);
 
-		$this->assertEquals(1, count($scopes));
+		$this->assertCount(1, $scopes);
 		$this->assertEquals('user.list', $scopes[0]->getId());
 		$this->assertEquals('list users', $scopes[0]->getDescription());
 	}
@@ -109,13 +101,12 @@ class AccessTokenStorageTest extends PDOTest
 
 		$scopes = $this->accessToken->getScopes($token);
 
-		$this->assertEquals(0, count($scopes));
+		$this->assertCount(0, $scopes);
 	}
 
 	public function testAssociateScope()
 	{
 		$token = (new AccessTokenEntity($this->server))->setId('10authCode');
-		/** @var ScopeEntity $scope */
 		$scope = (new ScopeEntity($this->server))->hydrate(['id' => 'user.list', 'description' => 'list user']);
 
 		$this->accessToken->associateScope($token, $scope);
@@ -143,7 +134,7 @@ class AccessTokenStorageTest extends PDOTest
 	{
 		parent::setUp();
 		$this->accessToken = new AccessTokenStorage($this->db);
-		$this->server = $this->getMock(AbstractServer::class);
+		$this->server = $this->createMock(AbstractServer::class);
 		$this->accessStorage = $this->getMockBuilder(AccessTokenStorage::class)->disableOriginalConstructor()->getMock();
 		$this->server->method('getAccessTokenStorage')->willReturn($this->accessStorage);
 

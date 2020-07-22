@@ -7,7 +7,7 @@
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-class PDOTest extends PHPUnit_Framework_TestCase
+class PDOTest extends PHPUnit\Framework\TestCase
 {
 	private static $sql;
 	/**

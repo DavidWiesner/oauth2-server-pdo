@@ -28,7 +28,7 @@ class ScopeStorageTest extends PDOTest
 
 	public function testGet()
 	{
-		$this->db->exec('INSERT INTO oauth_scopes VALUES ("user.list", "list users"), ("user.add", "add user");');
+		$this->db->exec("INSERT INTO oauth_scopes VALUES ('user.list', 'list users'), ('user.add', 'add user');");
 
 		$scope = $this->scope->get('user.list');
 
@@ -42,7 +42,7 @@ class ScopeStorageTest extends PDOTest
 	{
 		parent::setUp();
 		$this->scope = new ScopeStorage($this->db);
-		$this->server = $this->getMock(AbstractServer::class);
+		$this->server = $this->createMock(AbstractServer::class);
 
 		$this->scope->setServer($this->server);
 	}

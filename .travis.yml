@@ -1,16 +1,37 @@
 language: php
-php:
-  - 5.5
-  - 5.6
-  - 5.5
-  - 7
-  - hhvm
-install: composer install
-script: ./vendor/bin/phpunit 
-after_success: 
-  - bash -c 'if [ "$TRAVIS_PHP_VERSION" != "hhvm" -a "$TRAVIS_PHP_VERSION" != "7" ]; then bash <(curl -s https://codecov.io/bash); fi'
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+env:
+  - INSTALL_ARGS=""
+
+before_install:
+  - composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --no-update
+
+install: composer update --prefer-dist --no-interaction --prefer-lowest $INSTALL_ARGS
+
+script: ./vendor/bin/phpunit --debug -c phpunit.xml --coverage-clover clover.xml
+
+after_success:
+  - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then ./vendor/bin/coveralls -v; fi
+
 matrix:
+  include:
+    - php: 5.6
+      env: PHPUNIT_VERSION=5.7.27
+    - php: 7.0
+      env: PHPUNIT_VERSION=5.7.27
+    - php: 7.1
+      env: PHPUNIT_VERSION=5.7.27
+    - php: 7.2
+      env: PHPUNIT_VERSION=7.5.20 INSTALL_ARGS=" --ignore-platform-reqs "
+    - php: 7.3
+      env: PHPUNIT_VERSION=7.5.20 INSTALL_ARGS=" --ignore-platform-reqs "
+    - php: 7.4
+      env: PHPUNIT_VERSION=7.5.20 INSTALL_ARGS=" --ignore-platform-reqs "
+    - php: nightly
+      env: PHPUNIT_VERSION=7.5.20 INSTALL_ARGS=" --ignore-platform-reqs "
   fast_finish: true
   allow_failures:
-     - php: 7
-     - php: hhvm
+    - php: nightly

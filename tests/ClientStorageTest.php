@@ -59,8 +59,8 @@ class ClientStorageTest extends PDOTest
 
 	public function testGetBySessionFailed()
 	{
-		$this->db->exec('INSERT INTO oauth_sessions
-						VALUES (100,"10Client","client", "10Owner", NULL )');
+		$this->db->exec("INSERT INTO oauth_sessions
+						VALUES (100,'10Client','client', '10Owner', NULL )");
 		$session = (new SessionEntity($this->server))->setId(29);
 
 		$client = $this->client->getBySession($session);
@@ -70,8 +70,8 @@ class ClientStorageTest extends PDOTest
 
 	public function testGetBySession()
 	{
-		$exec = $this->db->exec('INSERT INTO oauth_sessions
-						VALUES (100, "client", "10Owner", "10Client", NULL )');
+		$exec = $this->db->exec("INSERT INTO oauth_sessions
+						VALUES (100, 'client', '10Owner', '10Client', NULL )");
 		$session = (new SessionEntity($this->server))->setId(100);
 
 		$client = $this->client->getBySession($session);
@@ -87,12 +87,12 @@ class ClientStorageTest extends PDOTest
 	{
 		parent::setUp();
 		$this->client = new ClientStorage($this->db);
-		$this->server = $this->getMock(AbstractServer::class);
+		$this->server = $this->createMock(AbstractServer::class);
 
 		$this->client->setServer($this->server);
-		$this->db->exec('INSERT INTO oauth_clients
-						VALUES ("10Client","10Secret","10Name"), ("11Client","11Secret","11Name")');
-		$this->db->exec('INSERT INTO oauth_client_redirect_uris VALUES (20, "11Client", "/11Redirect")');
+		$this->db->exec("INSERT INTO oauth_clients
+						VALUES ('10Client','10Secret','10Name'), ('11Client','11Secret','11Name')");
+		$this->db->exec("INSERT INTO oauth_client_redirect_uris VALUES (20, '11Client', '/11Redirect')");
 	}
 
 

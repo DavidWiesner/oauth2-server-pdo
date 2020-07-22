@@ -36,9 +36,10 @@ class RefreshTokenStorageTest extends PDOTest
 	public function testGet()
 	{
 		$time = time() + 60 * 60;
-		$this->db->exec('INSERT INTO oauth_refresh_tokens VALUES ("10Refresh", ' . $time . ', "10Access");');
+		$this->db->exec("INSERT INTO oauth_refresh_tokens VALUES ('10Refresh', " . $time . ", '10Access');");
 		$accessToken = new AccessTokenEntity($this->server);
-		$this->accessStorage->expects($this->once())->method('get')->with('10Access')->willReturn($accessToken);
+        /** @noinspection PhpParamsInspection */
+        $this->accessStorage->expects($this->once())->method('get')->with('10Access')->willReturn($accessToken);
 
 		$authCode = $this->token->get('10Refresh');
 
@@ -53,7 +54,7 @@ class RefreshTokenStorageTest extends PDOTest
 		$time = time() + 60 * 60;
 		$this->token->create('20NewToken', $time, "20Access");
 
-		$stmt = $this->db->prepare('SELECT * FROM oauth_refresh_tokens WHERE refresh_token = "20NewToken"');
+		$stmt = $this->db->prepare("SELECT * FROM oauth_refresh_tokens WHERE refresh_token = '20NewToken'");
 		$stmt->execute();
 		$this->assertSame([
 				'refresh_token' => '20NewToken',
@@ -62,42 +63,36 @@ class RefreshTokenStorageTest extends PDOTest
 		], $stmt->fetch(PDO::FETCH_ASSOC));
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*access_token'
-	 */
-	public function testCreateFailedNoAccessToken()
+    public function testCreateFailedNoAccessToken()
 	{
-		$this->token->create('20NewToken', 1024, null);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*access_token'");
+        $this->token->create('20NewToken', 1024, null);
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*expire_time'
-	 */
-	public function testCreateFailedNoExpired()
+    public function testCreateFailedNoExpired()
 	{
-		$this->token->create('20NewToken', null, "20AccessToken");
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*expire_time'");
+        $this->token->create('20NewToken', null, "20AccessToken");
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation):.*refresh_token'
-	 */
-	public function testCreateFailedNoCode()
+    public function testCreateFailedNoCode()
 	{
-		$this->token->create(null, 1024, 1);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation):.*refresh_token'");
+        $this->token->create(null, 1024, 1);
 	}
 
 	public function testDelete()
 	{
-		$this->db->exec('INSERT INTO oauth_refresh_tokens
-					VALUES ("10Refresh", DATETIME("NOW", "+1 DAY"), "10Access");');
+		$this->db->exec("INSERT INTO oauth_refresh_tokens
+					VALUES ('10Refresh', DATETIME('NOW', '+1 DAY'), '10Access');");
 		$token = (new RefreshTokenEntity($this->server))->setId('10Refresh');
 
 		$this->token->delete($token);
 
-		$stmt = $this->db->prepare('SELECT * FROM oauth_refresh_tokens WHERE refresh_token = "10Refresh"');
+		$stmt = $this->db->prepare("SELECT * FROM oauth_refresh_tokens WHERE refresh_token = '10Refresh'");
 		$stmt->execute();
 		$this->assertSame([], $stmt->fetchAll(PDO::FETCH_ASSOC));
 	}
@@ -106,7 +101,7 @@ class RefreshTokenStorageTest extends PDOTest
 	{
 		parent::setUp();
 		$this->token = new RefreshTokenStorage($this->db);
-		$this->server = $this->getMock(AbstractServer::class);
+		$this->server = $this->createMock(AbstractServer::class);
 		$this->accessStorage = $this->getMockBuilder(AccessTokenStorage::class)->disableOriginalConstructor()->getMock();
 		$this->server->method('getAccessTokenStorage')->willReturn($this->accessStorage);
 

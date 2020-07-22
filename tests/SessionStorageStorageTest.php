@@ -64,7 +64,9 @@ class SessionStorageTest extends PDOTest
 
 		$session = $this->session->getByAccessToken($accessToken);
 
-		$this->clientStorage->expects($this->once())->method('getBySession')->with($session)->willReturn([''=>$client]);
+        /** @noinspection PhpParamsInspection */
+        $this->clientStorage->expects($this->once())
+            ->method('getBySession')->with($session)->willReturn([''=>$client]);
 		$this->assertEquals(19, $session->getId());
 		$this->assertEquals("user", $session->getOwnerType());
 		$this->assertEquals(3, $session->getOwnerId());
@@ -73,7 +75,6 @@ class SessionStorageTest extends PDOTest
 
 	public function testGetByAuthCodeFail()
 	{
-		/** @var AuthCodeEntity $authCode */
 		$authCode = (new AuthCodeEntity($this->server))->setId("1234");
 
 		$session = $this->session->getByAuthCode($authCode);
@@ -85,13 +86,14 @@ class SessionStorageTest extends PDOTest
 	{
 		$this->db->exec("INSERT INTO oauth_sessions	VALUES (19, 'user', '3', 'testclient', '/');
 						INSERT INTO oauth_auth_codes VALUES ('1234', 19,  DATETIME('NOW', '+1 DAY'), '/');");
-		/** @var AuthCodeEntity $authCode */
 		$authCode = (new AuthCodeEntity($this->server))->setId("1234");
 		$client = new ClientEntity($this->server);
 
 		$session = $this->session->getByAuthCode($authCode);
 
-		$this->clientStorage->expects($this->once())->method('getBySession')->with($session)->willReturn([''=>$client]);
+        /** @noinspection PhpParamsInspection */
+        $this->clientStorage->expects($this->once())->method('getBySession')
+            ->with($session)->willReturn([''=>$client]);
 		$this->assertEquals(19, $session->getId());
 		$this->assertEquals("user", $session->getOwnerType());
 		$this->assertEquals(3, $session->getOwnerId());
@@ -124,31 +126,25 @@ class SessionStorageTest extends PDOTest
 		], $stmt->fetch(PDO::FETCH_ASSOC));
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation).*client_id'
-	 */
-	public function testCreateFailClientNull()
+    public function testCreateFailClientNull()
 	{
-		$this->session->create('user', 'myOwner', null);
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation).*client_id'");
+        $this->session->create('user', 'myOwner', null);
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation).*owner_id'
-	 */
-	public function testCreateFailOwnerNull()
+    public function testCreateFailOwnerNull()
 	{
-		$this->session->create('user', null, 'myClient');
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation).*owner_id'");
+        $this->session->create('user', null, 'myClient');
 	}
 
-	/**
-	 * @expectedException PDOException
-	 * @expectedExceptionMessageRegExp '.*constraint (failed|violation).*owner_type'
-	 */
-	public function testCreateFailTypeNull()
+    public function testCreateFailTypeNull()
 	{
-		$this->session->create(null, 'myOwner', 'myClient');
+        $this->expectException(PDOException::class);
+        $this->expectExceptionMessageRegExp("'.*constraint (failed|violation).*owner_type'");
+        $this->session->create(null, 'myOwner', 'myClient');
 	}
 
 	public function testGetScopes()
@@ -160,7 +156,7 @@ class SessionStorageTest extends PDOTest
 
 		$scopes = $this->session->getScopes($session);
 
-		$this->assertEquals(1, count($scopes));
+		$this->assertCount(1, $scopes);
 		$this->assertEquals('user.list', $scopes[0]->getId());
 		$this->assertEquals('list users', $scopes[0]->getDescription());
 	}
@@ -171,13 +167,12 @@ class SessionStorageTest extends PDOTest
 
 		$scopes = $this->session->getScopes($session);
 
-		$this->assertEquals(0, count($scopes));
+		$this->assertCount(0, $scopes);
 	}
 
 	public function testAssociateScope()
 	{
 		$session = (new SessionEntity($this->server))->setId(29);
-		/** @var ScopeEntity $scope */
 		$scope = (new ScopeEntity($this->server))->hydrate(['id' => 'user.list', 'description' => 'list user']);
 
 		$this->session->associateScope($session, $scope);
@@ -193,7 +188,7 @@ class SessionStorageTest extends PDOTest
 		parent::setUp();
 
 		$this->session = new SessionStorage($this->db);
-		$this->server = $this->getMock(AbstractServer::class);
+		$this->server = $this->createMock(AbstractServer::class);
 		$this->server->method('getEventEmitter')->willReturn(new Emitter());
 		$this->clientStorage = $this->getMockBuilder(ClientStorage::class)->disableOriginalConstructor()->getMock();
 		$this->server->method('getClientStorage')->willReturn($this->clientStorage);
