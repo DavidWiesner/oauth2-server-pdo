@@ -34,11 +34,11 @@ class ClientStorage extends Storage implements ClientInterface
 		$binds = [];
 		$binds[':clientId'] = $clientId;
 
-		if ($clientSecret != null) {
+		if (!is_null($clientSecret)) {
 			$where[] = ' clients.secret = :clientSecret ';
 			$binds[':clientSecret'] = $clientSecret;
 		}
-		if ($redirectUri != null) {
+		if (!is_null($redirectUri)) {
 			$sql .= ' LEFT JOIN oauth_client_redirect_uris as redirect ON (redirect.client_id = clients.id) ';
 			$where[] = ' redirect.redirect_uri = :redirectUri ';
 			$binds[':redirectUri'] = $redirectUri;
@@ -70,8 +70,8 @@ class ClientStorage extends Storage implements ClientInterface
 		if (count($result) === 1) {
 			$client = new ClientEntity($this->getServer());
 			$client->hydrate([
-					'id' => $result[0]['id'],
-					'name' => $result[0]['name']
+				'id' => $result[0]['id'],
+				'name' => $result[0]['name']
 			]);
 			return $client;
 		}

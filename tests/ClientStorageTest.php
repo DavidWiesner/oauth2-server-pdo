@@ -1,4 +1,5 @@
 <?php
+
 use DBoho\OAuth2\Server\Storage\PDO\ClientStorage;
 use League\OAuth2\Server\AbstractServer;
 use League\OAuth2\Server\Entity\SessionEntity;
@@ -32,6 +33,20 @@ class ClientStorageTest extends PDOTest
 	{
 		$client = $this->client->get('10Client', '11Secret');
 		$this->assertNull($client);
+	}
+
+	public function testGetClientSecretEmpty()
+	{
+		$client = $this->client->get('10Client', '');
+		$this->assertNull($client);
+	}
+
+	public function testGetClientSecretNull()
+	{
+		$client = $this->client->get('10Client', null);
+		$this->assertNotNull($client);
+		$this->assertEquals('10Client', $client->getId());
+		$this->assertEquals('10Name', $client->getName());
 	}
 
 	public function testGetClientSecret()
